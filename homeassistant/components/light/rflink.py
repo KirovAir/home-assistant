@@ -21,8 +21,8 @@ _LOGGER = logging.getLogger(__name__)
 VALID_CONFIG_KEYS = [
     'aliasses',
     'name',
+    'signal_repetitions'
 ]
-
 
 def entity_type_for_device_id(device_id):
     """Return entity class for procotol of a given device_id."""

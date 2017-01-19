@@ -34,6 +34,8 @@ REQUIREMENTS = ['rflink==0.0.18']
 
 DOMAIN = 'rflink'
 
+DEFAULT_SIGNAL_REPETITIONS = 1
+
 RFLINK_EVENT = {
     'light': 'rflink_switch_event_received',
     'sensor': 'rflink_sensor_event_received',
@@ -147,10 +149,10 @@ class RflinkDevice(Entity):
     # default state
     _state = STATE_UNKNOWN
 
-    def __init__(self, device_id, hass, name=None, aliasses=None, icon=None):
+    def __init__(self, device_id, hass, name=None, aliasses=None, icon=None, signal_repetitions=DEFAULT_SIGNAL_REPETITIONS):
         """Initialize the device."""
         self.hass = hass
-
+        self.signal_repetitions = signal_repetitions
         # rflink specific attributes for every component type
         self._device_id = device_id
         if name:
@@ -235,13 +237,14 @@ class RflinkDevice(Entity):
             self._state = True
 
         # send protocol, device id, switch nr and command to rflink
-        self.hass.bus.fire(
-            RFLINK_EVENT['send_command'],
-            {
-                ATTR_ENTITY_ID: self._device_id,
-                ATTR_COMMAND: cmd,
-            }
-        )
+        for _ in range(self.signal_repetitions):
+            self.hass.bus.fire(
+                RFLINK_EVENT['send_command'],
+                {
+                    ATTR_ENTITY_ID: self._device_id,
+                    ATTR_COMMAND: cmd,
+                }
+            )
 
         # Update state of entity to represent the desired state even though we
         # do not have a confirmation yet the command has been successfully sent
